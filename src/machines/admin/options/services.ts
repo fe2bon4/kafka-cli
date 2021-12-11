@@ -177,8 +177,8 @@ const services: ServiceConfigMap = {
 
     commander
       .command('create-partitions')
-      .description('Create topics on this cluster')
-      .argument('[topics]', 'Topics to be partitioned')
+      .description('Create partitions to a topic on this cluster')
+      .argument('[topic]', 'Topic to be partitioned')
       .option(
         '-p, --partitions [partitions]',
         'Number of partitions for topic',
