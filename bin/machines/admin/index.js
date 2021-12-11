@@ -29,9 +29,8 @@ var xstate_1 = require("xstate");
 var cli_1 = require("../../utils/cli");
 var config_1 = __importDefault(require("./config"));
 var options_1 = __importDefault(require("./options"));
-var log = (0, cli_1.prefixLog)('admin');
 var spawn = function (context) {
-    return (0, xstate_1.createMachine)(__assign(__assign({}, config_1.default), { context: __assign(__assign({}, context), { log: log }) }), options_1.default);
+    return (0, xstate_1.createMachine)(__assign(__assign({}, config_1.default), { context: __assign(__assign({}, context), { log: (0, cli_1.prefixLog)('admin') }) }), options_1.default);
 };
 exports.spawn = spawn;
 var Interpret = function (context, start) {

@@ -25,13 +25,16 @@ var config = {
             ],
             on: {
                 CHANGE_TOPIC: {
-                    actions: ['updateParams'],
-                },
-                SEND: {
-                    actions: ['sendInputToProducer'],
+                    actions: ['updateParams', 'logTopicChanged'],
                 },
                 SENT: {
-                    actions: [],
+                    actions: ['sendToStandardInput'],
+                },
+                DONE: {
+                    actions: ['sendToStandardInput'],
+                },
+                '*': {
+                    actions: ['sendInputToProducer'],
                 },
             },
         },

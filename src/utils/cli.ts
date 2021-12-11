@@ -18,7 +18,7 @@ export const prefixInput = (prefix: string) => {
 export const createCli = (
   commander: Command,
   service_name: string,
-  emitter: EventEmitter = process.stdin
+  tty: EventEmitter = process.stdin
 ) => {
   const prompter = prefixInput(service_name);
   let prompterTimeout: NodeJS.Timeout | undefined;
@@ -30,6 +30,13 @@ export const createCli = (
       console.clear();
     });
 
+  commander
+    .command('exit')
+    .description('Exit command line interface')
+    .action(() => {
+      process.exit(0);
+    });
+
   commander.exitOverride();
   commander.outputHelp();
 
@@ -38,6 +45,7 @@ export const createCli = (
 
     setTimeout(() => prompter(args), ttl);
   };
+
   const onInput = (buffer: Buffer) => {
     const input = buffer.toString().replace(/\n/g, '');
 
@@ -56,12 +64,21 @@ export const createCli = (
     }
   };
 
-  emitter.on('data', onInput);
-  setTimeout(() => prompter(), 200);
+  const pause = () => {
+    tty.off('data', onInput);
+  };
+
+  const resume = () => {
+    tty.on('data', onInput);
+    prompter();
+  };
+
+  tty.on('data', onInput);
+  setTimeout(() => prompter(), 100);
   return {
+    pause,
     prompt: prompter,
-    cleanup: () => {
-      emitter.off('data', onInput);
-    },
+    resume,
+    cleanup: () => tty.off('data', onInput),
   };
 };

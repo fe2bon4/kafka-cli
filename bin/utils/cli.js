@@ -29,8 +29,8 @@ var prefixInput = function (prefix) {
     };
 };
 exports.prefixInput = prefixInput;
-var createCli = function (commander, service_name, emitter) {
-    if (emitter === void 0) { emitter = process.stdin; }
+var createCli = function (commander, service_name, tty) {
+    if (tty === void 0) { tty = process.stdin; }
     var prompter = (0, exports.prefixInput)(service_name);
     var prompterTimeout;
     commander
@@ -38,6 +38,12 @@ var createCli = function (commander, service_name, emitter) {
         .description('Clear Console')
         .action(function () {
         console.clear();
+    });
+    commander
+        .command('exit')
+        .description('Exit command line interface')
+        .action(function () {
+        process.exit(0);
     });
     commander.exitOverride();
     commander.outputHelp();
@@ -64,13 +70,20 @@ var createCli = function (commander, service_name, emitter) {
                 return;
         }
     };
-    emitter.on('data', onInput);
-    setTimeout(function () { return prompter(); }, 200);
+    var pause = function () {
+        tty.off('data', onInput);
+    };
+    var resume = function () {
+        tty.on('data', onInput);
+        prompter();
+    };
+    tty.on('data', onInput);
+    setTimeout(function () { return prompter(); }, 100);
     return {
+        pause: pause,
         prompt: prompter,
-        cleanup: function () {
-            emitter.off('data', onInput);
-        },
+        resume: resume,
+        cleanup: function () { return tty.off('data', onInput); },
     };
 };
 exports.createCli = createCli;

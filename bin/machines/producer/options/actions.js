@@ -24,8 +24,17 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var xstate_1 = require("xstate");
 var actions = {
-    logReady: function () {
-        console.log("Kafka Producer is ready.");
+    logReady: function (_a) {
+        var log = _a.log;
+        if (!log)
+            return console.log("Kafka Producer is ready.");
+        log("Kafka Producer is ready.");
+    },
+    logTopicChanged: function (_a) {
+        var log = _a.log, params = _a.params;
+        if (!log)
+            return console.log("Topic changed to '".concat(params.topic, "'"));
+        log("Topic changed to '".concat(params.topic, "'"));
     },
     sendInputToProducer: (0, xstate_1.send)(function (_a, _b) {
         var params = _a.params;
@@ -34,6 +43,7 @@ var actions = {
     }, {
         to: 'kafka-producer',
     }),
+    sendToStandardInput: (0, xstate_1.send)(function (_, e) { return e; }, { to: 'standard-input' }),
     updateParams: (0, xstate_1.assign)({
         params: function (_a, _b) {
             var params = _a.params;
