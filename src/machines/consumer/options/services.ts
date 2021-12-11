@@ -185,10 +185,7 @@ const services: ServiceConfigMap = {
           });
         });
 
-      const { cleanup, pause, resume, prompt } = createCli(
-        commander,
-        'consumer'
-      );
+      const { cleanup } = createCli(commander, 'consumer');
 
       return cleanup;
     },
