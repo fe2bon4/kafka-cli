@@ -189,7 +189,7 @@ var services = {
             });
         });
         commander
-            .command('create-partitions')
+            .command('create-topic-partitions')
             .description('Create partitions to a topic on this cluster')
             .argument('[topic]', 'Topic to be partitioned')
             .option('-p, --partitions [partitions]', 'Number of partitions for topic', parseInt)
