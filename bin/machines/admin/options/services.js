@@ -65,7 +65,7 @@ var services = {
                                 case 'LIST_TOPICS': return [3 /*break*/, 2];
                                 case 'CREATE_TOPICS': return [3 /*break*/, 4];
                                 case 'CREATE_PARTITIONS': return [3 /*break*/, 6];
-                                case 'FETCH_OFFSETS_TOPIC': return [3 /*break*/, 8];
+                                case 'LIST_OFFSETS_TOPIC': return [3 /*break*/, 8];
                                 case 'DELETE TOPICS': return [3 /*break*/, 10];
                                 case 'LIST_GROUPS': return [3 /*break*/, 12];
                                 case 'DESCRIBE_CLUSTER': return [3 /*break*/, 14];
@@ -104,8 +104,8 @@ var services = {
                         case 8: return [4 /*yield*/, admin.fetchTopicOffsets(event.payload.topic)];
                         case 9:
                             result = _b.sent();
-                            log('[fetch-topic-offsets]', result);
-                            _b.label = 10;
+                            log('[list-topic-offsets]', result);
+                            return [3 /*break*/, 21];
                         case 10: return [4 /*yield*/, admin
                                 .deleteTopics({
                                 topics: event.payload.topics,
@@ -167,24 +167,6 @@ var services = {
     standardInput: function () { return function (send) {
         var commander = new commander_1.Command();
         commander
-            .command('list-groups')
-            .description('List Consumer Groups in this cluster')
-            .action(function () {
-            send({
-                type: 'LIST_GROUPS',
-                payload: {},
-            });
-        });
-        commander
-            .command('list-topics')
-            .description('List topics on this cluster')
-            .action(function () {
-            send({
-                type: 'LIST_TOPICS',
-                payload: {},
-            });
-        });
-        commander
             .command('create-topics')
             .description('Create topics on this cluster')
             .argument('[topics...]', 'Topics to be created')
@@ -208,8 +190,8 @@ var services = {
         });
         commander
             .command('create-partitions')
-            .description('Create topics on this cluster')
-            .argument('[topics]', 'Topics to be partitioned')
+            .description('Create partitions to a topic on this cluster')
+            .argument('[topic]', 'Topic to be partitioned')
             .option('-p, --partitions [partitions]', 'Number of partitions for topic', parseInt)
             .action(function (topic, _a) {
             var _b = _a.partitions, partitions = _b === void 0 ? 1 : _b;
@@ -221,18 +203,6 @@ var services = {
             send({
                 type: 'CREATE_PARTITIONS',
                 payload: payload,
-            });
-        });
-        commander
-            .command('fetch-topic-offsets')
-            .description('Fetch Offsets of each partition in topic')
-            .argument('[topic]', 'Topic')
-            .action(function (topic) {
-            send({
-                type: 'FETCH_OFFSETS_TOPIC',
-                payload: {
-                    topic: topic,
-                },
             });
         });
         commander
@@ -277,6 +247,36 @@ var services = {
                 type: 'DESCRIBE_TOPICS',
                 payload: {
                     topics: topics,
+                },
+            });
+        });
+        commander
+            .command('list-groups')
+            .description('List Consumer Groups in this cluster')
+            .action(function () {
+            send({
+                type: 'LIST_GROUPS',
+                payload: {},
+            });
+        });
+        commander
+            .command('list-topics')
+            .description('List topics on this cluster')
+            .action(function () {
+            send({
+                type: 'LIST_TOPICS',
+                payload: {},
+            });
+        });
+        commander
+            .command('list-topic-offsets')
+            .description('List Offsets of each partition in topic')
+            .argument('[topic]', 'Topic')
+            .action(function (topic) {
+            send({
+                type: 'LIST_OFFSETS_TOPIC',
+                payload: {
+                    topic: topic,
                 },
             });
         });

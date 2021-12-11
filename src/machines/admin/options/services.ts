@@ -57,10 +57,10 @@ const services: ServiceConfigMap = {
               break;
             }
 
-            case 'FETCH_OFFSETS_TOPIC': {
+            case 'LIST_OFFSETS_TOPIC': {
               const result = await admin.fetchTopicOffsets(event.payload.topic);
 
-              log!('[fetch-topic-offsets]', result);
+              log!('[list-topic-offsets]', result);
               break;
             }
             case 'DELETE TOPICS': {
@@ -125,26 +125,6 @@ const services: ServiceConfigMap = {
     const commander = new Command();
 
     commander
-      .command('list-groups')
-      .description('List Consumer Groups in this cluster')
-      .action(() => {
-        send({
-          type: 'LIST_GROUPS',
-          payload: {},
-        });
-      });
-
-    commander
-      .command('list-topics')
-      .description('List topics on this cluster')
-      .action(() => {
-        send({
-          type: 'LIST_TOPICS',
-          payload: {},
-        });
-      });
-
-    commander
       .command('create-topics')
       .description('Create topics on this cluster')
       .argument('[topics...]', 'Topics to be created')
@@ -197,19 +177,6 @@ const services: ServiceConfigMap = {
       });
 
     commander
-      .command('fetch-topic-offsets')
-      .description('Fetch Offsets of each partition in topic')
-      .argument('[topic]', 'Topic')
-      .action((topic: string) => {
-        send({
-          type: 'FETCH_OFFSETS_TOPIC',
-          payload: {
-            topic,
-          },
-        });
-      });
-
-    commander
       .command('delete-topics')
       .description('Delete topics from this cluster')
       .argument('[topics...]', 'Topics to be deleted')
@@ -258,6 +225,38 @@ const services: ServiceConfigMap = {
         });
       });
 
+    commander
+      .command('list-groups')
+      .description('List Consumer Groups in this cluster')
+      .action(() => {
+        send({
+          type: 'LIST_GROUPS',
+          payload: {},
+        });
+      });
+
+    commander
+      .command('list-topics')
+      .description('List topics on this cluster')
+      .action(() => {
+        send({
+          type: 'LIST_TOPICS',
+          payload: {},
+        });
+      });
+
+    commander
+      .command('list-topic-offsets')
+      .description('List Offsets of each partition in topic')
+      .argument('[topic]', 'Topic')
+      .action((topic: string) => {
+        send({
+          type: 'LIST_OFFSETS_TOPIC',
+          payload: {
+            topic,
+          },
+        });
+      });
     const { cleanup } = createCli(commander, 'admin');
     return cleanup;
   },
