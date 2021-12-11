@@ -33,6 +33,8 @@ const services: ServiceConfigMap = {
       });
 
       const consumer = kafka.consumer({
+        sessionTimeout: 10000,
+        heartbeatInterval: 2000,
         groupId: params.group,
       });
 

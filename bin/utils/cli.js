@@ -17,7 +17,7 @@ var prefixLog = function (prefix) {
             args[_i] = arguments[_i];
         }
         var date = new Date();
-        console.log.apply(console, __spreadArray(["".concat(date.toLocaleString(), " [").concat(prefix, "]:")], args, false));
+        console.log.apply(console, __spreadArray(["".concat(date.toLocaleString(), " [").concat(prefix, "]:"), '\r\n'], args, false));
     };
 };
 exports.prefixLog = prefixLog;

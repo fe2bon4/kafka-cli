@@ -4,7 +4,7 @@ import { EventEmitter } from 'stream';
 export const prefixLog = (prefix: string) => {
   return (...args: Array<any>) => {
     const date = new Date();
-    console.log(`${date.toLocaleString()} [${prefix}]:`, ...args);
+    console.log(`${date.toLocaleString()} [${prefix}]:`, '\r\n', ...args);
   };
 };
 

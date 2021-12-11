@@ -75,6 +75,8 @@ var services = {
                 logCreator: (0, kafkajs_2.createLogger)(log),
             });
             var consumer = kafka.consumer({
+                sessionTimeout: 10000,
+                heartbeatInterval: 2000,
                 groupId: params.group,
             });
             var _a = consumer.events, GROUP_JOIN = _a.GROUP_JOIN, CONNECT = _a.CONNECT;
