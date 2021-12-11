@@ -1,6 +1,6 @@
 import { ServiceConfig, AnyEventObject } from 'xstate';
 import { IContext } from '../types';
-import { Kafka } from 'kafkajs';
+import { ITopicConfig, ITopicPartitionConfig, Kafka } from 'kafkajs';
 import { Command } from 'commander';
 import { createCli } from '../../../utils/cli';
 import { createLogger } from '../../../utils/kafkajs';
@@ -31,6 +31,59 @@ const services: ServiceConfigMap = {
             case 'LIST_TOPICS': {
               const topics = await admin.listTopics();
               log!(`[list-topics]`, JSON.stringify(topics, null, 4));
+              break;
+            }
+
+            case 'CREATE_TOPICS': {
+              const created = await admin.createTopics({
+                waitForLeaders: false,
+                topics: event.payload.topics,
+              });
+
+              log!(
+                `[created:${created}]`,
+                event.payload.topics.map(({ topic }: ITopicConfig) => topic)
+              );
+              break;
+            }
+            case 'CREATE_PARTITIONS': {
+              const updated = await admin.createPartitions({
+                topicPartitions: [event.payload],
+              });
+
+              log!(
+                `[updated:${updated}][topic:${event.payload.topic}][partitions:${event.payload.count}]`
+              );
+              break;
+            }
+
+            case 'FETCH_OFFSETS_TOPIC': {
+              const result = await admin.fetchTopicOffsets(event.payload.topic);
+
+              log!('[fetch-topic-offsets]', result);
+              break;
+            }
+            case 'DELETE TOPICS': {
+              await admin
+                .deleteTopics({
+                  topics: event.payload.topics,
+                })
+                .then(() => {
+                  log!(
+                    `[deleted:true]`,
+                    event.payload.topics.map(({ topic }: ITopicConfig) => topic)
+                  );
+                })
+                .catch((e) => {
+                  log!(
+                    `[deleted:false]`,
+                    event.payload.topics.map(
+                      ({ topic }: ITopicConfig) => topic
+                    ),
+                    e
+                  );
+                });
+
               break;
             }
             case 'LIST_GROUPS': {
@@ -88,6 +141,84 @@ const services: ServiceConfigMap = {
         send({
           type: 'LIST_TOPICS',
           payload: {},
+        });
+      });
+
+    commander
+      .command('create-topics')
+      .description('Create topics on this cluster')
+      .argument('[topics...]', 'Topics to be created')
+      .option(
+        '-p, --partitions [partitions]',
+        'Number of partitions for each created topic',
+        parseInt
+      )
+      .option(
+        '-r, --replicas [replica]',
+        'Number of replicas for each created topic',
+        parseInt
+      )
+      .action((topics: Array<string>, { partitions = 1, replicas = 1 }) => {
+        const topicConfigs: Array<ITopicConfig> = topics.map((topic) => {
+          return {
+            topic,
+            numPartitions: partitions,
+            replicationFactor: replicas,
+          };
+        });
+
+        send({
+          type: 'CREATE_TOPICS',
+          payload: {
+            topics: topicConfigs,
+          },
+        });
+      });
+
+    commander
+      .command('create-partitions')
+      .description('Create topics on this cluster')
+      .argument('[topics]', 'Topics to be partitioned')
+      .option(
+        '-p, --partitions [partitions]',
+        'Number of partitions for topic',
+        parseInt
+      )
+      .action((topic: string, { partitions = 1 }) => {
+        console.log(topic, partitions);
+        const payload: ITopicPartitionConfig = {
+          count: partitions,
+          topic,
+        };
+        send({
+          type: 'CREATE_PARTITIONS',
+          payload,
+        });
+      });
+
+    commander
+      .command('fetch-topic-offsets')
+      .description('Fetch Offsets of each partition in topic')
+      .argument('[topic]', 'Topic')
+      .action((topic: string) => {
+        send({
+          type: 'FETCH_OFFSETS_TOPIC',
+          payload: {
+            topic,
+          },
+        });
+      });
+
+    commander
+      .command('delete-topics')
+      .description('Delete topics from this cluster')
+      .argument('[topics...]', 'Topics to be deleted')
+      .action((topics: Array<string>) => {
+        send({
+          type: 'DELETE_TOPICS',
+          payload: {
+            topics,
+          },
         });
       });
 

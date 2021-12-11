@@ -54,65 +54,111 @@ var services = {
                 send('CONNECTED');
             });
             onEvent(function (event) { return __awaiter(void 0, void 0, void 0, function () {
-                var _a, topics, groups, cluster, groupInfo, topicsInfo, e_1, date;
+                var _a, topics, created, updated, result, groups, cluster, groupInfo, topicsInfo, e_1, date;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            _b.trys.push([0, 14, , 15]);
+                            _b.trys.push([0, 22, , 23]);
                             _a = event.type;
                             switch (_a) {
                                 case 'COMMAND': return [3 /*break*/, 1];
                                 case 'LIST_TOPICS': return [3 /*break*/, 2];
-                                case 'LIST_GROUPS': return [3 /*break*/, 4];
-                                case 'DESCRIBE_CLUSTER': return [3 /*break*/, 6];
-                                case 'DESCRIBE_GROUPS': return [3 /*break*/, 8];
-                                case 'DESCRIBE_TOPICS': return [3 /*break*/, 10];
+                                case 'CREATE_TOPICS': return [3 /*break*/, 4];
+                                case 'CREATE_PARTITIONS': return [3 /*break*/, 6];
+                                case 'FETCH_OFFSETS_TOPIC': return [3 /*break*/, 8];
+                                case 'DELETE TOPICS': return [3 /*break*/, 10];
+                                case 'LIST_GROUPS': return [3 /*break*/, 12];
+                                case 'DESCRIBE_CLUSTER': return [3 /*break*/, 14];
+                                case 'DESCRIBE_GROUPS': return [3 /*break*/, 16];
+                                case 'DESCRIBE_TOPICS': return [3 /*break*/, 18];
                             }
-                            return [3 /*break*/, 12];
+                            return [3 /*break*/, 20];
                         case 1:
                             {
-                                return [3 /*break*/, 13];
+                                return [3 /*break*/, 21];
                             }
                             _b.label = 2;
                         case 2: return [4 /*yield*/, admin.listTopics()];
                         case 3:
                             topics = _b.sent();
                             log("[list-topics]", JSON.stringify(topics, null, 4));
-                            return [3 /*break*/, 13];
-                        case 4: return [4 /*yield*/, admin.listGroups()];
-                        case 5:
-                            groups = _b.sent();
-                            log("[list-groups]", JSON.stringify(groups, null, 4));
-                            return [3 /*break*/, 13];
-                        case 6: return [4 /*yield*/, admin.describeCluster()];
-                        case 7:
-                            cluster = _b.sent();
-                            log("[describe-cluster]", JSON.stringify(cluster, null, 4));
-                            return [3 /*break*/, 13];
-                        case 8: return [4 /*yield*/, admin.describeGroups([
-                                event.payload.groups,
-                            ])];
-                        case 9:
-                            groupInfo = _b.sent();
-                            log("[describe-groups]", JSON.stringify(groupInfo, null, 4));
-                            return [3 /*break*/, 13];
-                        case 10: return [4 /*yield*/, admin.fetchTopicMetadata({
+                            return [3 /*break*/, 21];
+                        case 4: return [4 /*yield*/, admin.createTopics({
+                                waitForLeaders: false,
                                 topics: event.payload.topics,
                             })];
+                        case 5:
+                            created = _b.sent();
+                            log("[created:".concat(created, "]"), event.payload.topics.map(function (_a) {
+                                var topic = _a.topic;
+                                return topic;
+                            }));
+                            return [3 /*break*/, 21];
+                        case 6: return [4 /*yield*/, admin.createPartitions({
+                                topicPartitions: [event.payload],
+                            })];
+                        case 7:
+                            updated = _b.sent();
+                            log("[updated:".concat(updated, "][topic:").concat(event.payload.topic, "][partitions:").concat(event.payload.count, "]"));
+                            return [3 /*break*/, 21];
+                        case 8: return [4 /*yield*/, admin.fetchTopicOffsets(event.payload.topic)];
+                        case 9:
+                            result = _b.sent();
+                            log('[fetch-topic-offsets]', result);
+                            _b.label = 10;
+                        case 10: return [4 /*yield*/, admin
+                                .deleteTopics({
+                                topics: event.payload.topics,
+                            })
+                                .then(function () {
+                                log("[deleted:true]", event.payload.topics.map(function (_a) {
+                                    var topic = _a.topic;
+                                    return topic;
+                                }));
+                            })
+                                .catch(function (e) {
+                                log("[deleted:false]", event.payload.topics.map(function (_a) {
+                                    var topic = _a.topic;
+                                    return topic;
+                                }), e);
+                            })];
                         case 11:
+                            _b.sent();
+                            return [3 /*break*/, 21];
+                        case 12: return [4 /*yield*/, admin.listGroups()];
+                        case 13:
+                            groups = _b.sent();
+                            log("[list-groups]", JSON.stringify(groups, null, 4));
+                            return [3 /*break*/, 21];
+                        case 14: return [4 /*yield*/, admin.describeCluster()];
+                        case 15:
+                            cluster = _b.sent();
+                            log("[describe-cluster]", JSON.stringify(cluster, null, 4));
+                            return [3 /*break*/, 21];
+                        case 16: return [4 /*yield*/, admin.describeGroups([
+                                event.payload.groups,
+                            ])];
+                        case 17:
+                            groupInfo = _b.sent();
+                            log("[describe-groups]", JSON.stringify(groupInfo, null, 4));
+                            return [3 /*break*/, 21];
+                        case 18: return [4 /*yield*/, admin.fetchTopicMetadata({
+                                topics: event.payload.topics,
+                            })];
+                        case 19:
                             topicsInfo = _b.sent();
                             log("[describe-topics]", JSON.stringify(topicsInfo, null, 4));
-                            return [3 /*break*/, 13];
-                        case 12:
+                            return [3 /*break*/, 21];
+                        case 20:
                             console.log(event);
-                            return [3 /*break*/, 13];
-                        case 13: return [3 /*break*/, 15];
-                        case 14:
+                            return [3 /*break*/, 21];
+                        case 21: return [3 /*break*/, 23];
+                        case 22:
                             e_1 = _b.sent();
                             date = new Date();
                             console.log("[".concat(date.toLocaleString(), "][error]"), e_1.message);
-                            return [3 /*break*/, 15];
-                        case 15: return [2 /*return*/];
+                            return [3 /*break*/, 23];
+                        case 23: return [2 /*return*/];
                     }
                 });
             }); });
@@ -136,6 +182,69 @@ var services = {
             send({
                 type: 'LIST_TOPICS',
                 payload: {},
+            });
+        });
+        commander
+            .command('create-topics')
+            .description('Create topics on this cluster')
+            .argument('[topics...]', 'Topics to be created')
+            .option('-p, --partitions [partitions]', 'Number of partitions for each created topic', parseInt)
+            .option('-r, --replicas [replica]', 'Number of replicas for each created topic', parseInt)
+            .action(function (topics, _a) {
+            var _b = _a.partitions, partitions = _b === void 0 ? 1 : _b, _c = _a.replicas, replicas = _c === void 0 ? 1 : _c;
+            var topicConfigs = topics.map(function (topic) {
+                return {
+                    topic: topic,
+                    numPartitions: partitions,
+                    replicationFactor: replicas,
+                };
+            });
+            send({
+                type: 'CREATE_TOPICS',
+                payload: {
+                    topics: topicConfigs,
+                },
+            });
+        });
+        commander
+            .command('create-partitions')
+            .description('Create topics on this cluster')
+            .argument('[topics]', 'Topics to be partitioned')
+            .option('-p, --partitions [partitions]', 'Number of partitions for topic', parseInt)
+            .action(function (topic, _a) {
+            var _b = _a.partitions, partitions = _b === void 0 ? 1 : _b;
+            console.log(topic, partitions);
+            var payload = {
+                count: partitions,
+                topic: topic,
+            };
+            send({
+                type: 'CREATE_PARTITIONS',
+                payload: payload,
+            });
+        });
+        commander
+            .command('fetch-topic-offsets')
+            .description('Fetch Offsets of each partition in topic')
+            .argument('[topic]', 'Topic')
+            .action(function (topic) {
+            send({
+                type: 'FETCH_OFFSETS_TOPIC',
+                payload: {
+                    topic: topic,
+                },
+            });
+        });
+        commander
+            .command('delete-topics')
+            .description('Delete topics from this cluster')
+            .argument('[topics...]', 'Topics to be deleted')
+            .action(function (topics) {
+            send({
+                type: 'DELETE_TOPICS',
+                payload: {
+                    topics: topics,
+                },
             });
         });
         commander
