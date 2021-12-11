@@ -13,8 +13,11 @@ var __assign = (this && this.__assign) || function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var xstate_1 = require("xstate");
 var actions = {
-    logReady: function () {
-        console.log("Kafka Client is ready.");
+    logReady: function (_a) {
+        var log = _a.log;
+        if (!log)
+            return;
+        log("Kafka Client is ready.");
     },
     sendCommandToClient: (0, xstate_1.send)(function (_, e) { return e; }, {
         to: 'kafka-client',

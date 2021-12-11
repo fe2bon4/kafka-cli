@@ -1,4 +1,5 @@
 import { interpret, createMachine } from 'xstate';
+import { prefixLog } from '../../utils/cli';
 import config from './config';
 import options from './options';
 import { IContext } from './types';
@@ -7,7 +8,10 @@ export const spawn = (context: IContext) => {
   return createMachine(
     {
       ...config,
-      context,
+      context: {
+        ...context,
+        log: prefixLog('consumer'),
+      },
     },
     options
   );

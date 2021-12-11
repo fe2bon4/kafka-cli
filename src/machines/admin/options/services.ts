@@ -2,17 +2,18 @@ import { ServiceConfig, AnyEventObject } from 'xstate';
 import { IContext } from '../types';
 import { Kafka } from 'kafkajs';
 import { Command } from 'commander';
-
+import { createCli } from '../../../utils/cli';
+import { createLogger } from '../../../utils/kafkajs';
 type ServiceConfigMap = Record<string, ServiceConfig<IContext, AnyEventObject>>;
 
 const services: ServiceConfigMap = {
   kafkaClient:
-    ({ params }) =>
+    ({ params, log }) =>
     (send, onEvent) => {
-      console.log(params);
       const kafka = new Kafka({
         clientId: params.id,
         brokers: params.brokers.split(','),
+        logCreator: createLogger(log!),
       });
 
       const admin = kafka.admin();
@@ -28,52 +29,33 @@ const services: ServiceConfigMap = {
               break;
             }
             case 'LIST_TOPICS': {
-              const date = new Date();
               const topics = await admin.listTopics();
-              console.log(
-                `[${date.toLocaleString()}][list-topics]`,
-                JSON.stringify(topics, null, 4)
-              );
+              log!(`[list-topics]`, JSON.stringify(topics, null, 4));
               break;
             }
             case 'LIST_GROUPS': {
-              const date = new Date();
               const groups = await admin.listGroups();
-              console.log(
-                `[${date.toLocaleString()}][list-groups]`,
-                JSON.stringify(groups, null, 4)
-              );
+              log!(`[list-groups]`, JSON.stringify(groups, null, 4));
               break;
             }
             case 'DESCRIBE_CLUSTER': {
-              const date = new Date();
               const cluster = await admin.describeCluster();
-              console.log(
-                `[${date.toLocaleString()}][describe-cluster]`,
-                JSON.stringify(cluster, null, 4)
-              );
+              log!(`[describe-cluster]`, JSON.stringify(cluster, null, 4));
               break;
             }
             case 'DESCRIBE_GROUPS': {
-              const date = new Date();
               const groupInfo = await admin.describeGroups([
                 event.payload.groups,
               ]);
-              console.log(
-                `[${date.toLocaleString()}][describe-groups]`,
-                JSON.stringify(groupInfo, null, 4)
-              );
+              log!(`[describe-groups]`, JSON.stringify(groupInfo, null, 4));
+
               break;
             }
             case 'DESCRIBE_TOPICS': {
-              const date = new Date();
               const topicsInfo = await admin.fetchTopicMetadata({
                 topics: event.payload.topics,
               });
-              console.log(
-                `[${date.toLocaleString()}][describe-topics]`,
-                JSON.stringify(topicsInfo, null, 4)
-              );
+              log!(`[describe-topics]`, JSON.stringify(topicsInfo, null, 4));
               break;
             }
             default:
@@ -145,24 +127,8 @@ const services: ServiceConfigMap = {
         });
       });
 
-    commander.exitOverride();
-    commander.outputHelp();
-
-    const onInput = (buffer: Buffer) => {
-      const input = buffer.toString().replace(/\n/g, '');
-      if (!input) return;
-      const argv = ['', '', ...input.split(' ')];
-      try {
-        commander.parse(argv);
-      } catch (e: any) {
-        if (e.exitCode === 0) return;
-      }
-    };
-
-    process.stdin.on('data', onInput);
-    return () => {
-      process.stdin.off('data', onInput);
-    };
+    const { cleanup } = createCli(commander, 'admin');
+    return cleanup;
   },
 };
 

@@ -35,33 +35,26 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var kafkajs_1 = require("kafkajs");
 var commander_1 = require("commander");
+var cli_1 = require("../../../utils/cli");
+var kafkajs_2 = require("../../../utils/kafkajs");
 var services = {
     kafkaClient: function (_a) {
-        var params = _a.params;
+        var params = _a.params, log = _a.log;
         return function (send, onEvent) {
-            console.log(params);
             var kafka = new kafkajs_1.Kafka({
                 clientId: params.id,
                 brokers: params.brokers.split(','),
+                logCreator: (0, kafkajs_2.createLogger)(log),
             });
             var admin = kafka.admin();
             admin.connect().then(function () {
                 send('CONNECTED');
             });
             onEvent(function (event) { return __awaiter(void 0, void 0, void 0, function () {
-                var _a, date, topics, date, groups, date, cluster, date, groupInfo, date, topicsInfo, e_1, date;
+                var _a, topics, groups, cluster, groupInfo, topicsInfo, e_1, date;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
@@ -81,44 +74,34 @@ var services = {
                                 return [3 /*break*/, 13];
                             }
                             _b.label = 2;
-                        case 2:
-                            date = new Date();
-                            return [4 /*yield*/, admin.listTopics()];
+                        case 2: return [4 /*yield*/, admin.listTopics()];
                         case 3:
                             topics = _b.sent();
-                            console.log("[".concat(date.toLocaleString(), "][list-topics]"), JSON.stringify(topics, null, 4));
+                            log("[list-topics]", JSON.stringify(topics, null, 4));
                             return [3 /*break*/, 13];
-                        case 4:
-                            date = new Date();
-                            return [4 /*yield*/, admin.listGroups()];
+                        case 4: return [4 /*yield*/, admin.listGroups()];
                         case 5:
                             groups = _b.sent();
-                            console.log("[".concat(date.toLocaleString(), "][list-groups]"), JSON.stringify(groups, null, 4));
+                            log("[list-groups]", JSON.stringify(groups, null, 4));
                             return [3 /*break*/, 13];
-                        case 6:
-                            date = new Date();
-                            return [4 /*yield*/, admin.describeCluster()];
+                        case 6: return [4 /*yield*/, admin.describeCluster()];
                         case 7:
                             cluster = _b.sent();
-                            console.log("[".concat(date.toLocaleString(), "][describe-cluster]"), JSON.stringify(cluster, null, 4));
+                            log("[describe-cluster]", JSON.stringify(cluster, null, 4));
                             return [3 /*break*/, 13];
-                        case 8:
-                            date = new Date();
-                            return [4 /*yield*/, admin.describeGroups([
-                                    event.payload.groups,
-                                ])];
+                        case 8: return [4 /*yield*/, admin.describeGroups([
+                                event.payload.groups,
+                            ])];
                         case 9:
                             groupInfo = _b.sent();
-                            console.log("[".concat(date.toLocaleString(), "][describe-groups]"), JSON.stringify(groupInfo, null, 4));
+                            log("[describe-groups]", JSON.stringify(groupInfo, null, 4));
                             return [3 /*break*/, 13];
-                        case 10:
-                            date = new Date();
-                            return [4 /*yield*/, admin.fetchTopicMetadata({
-                                    topics: event.payload.topics,
-                                })];
+                        case 10: return [4 /*yield*/, admin.fetchTopicMetadata({
+                                topics: event.payload.topics,
+                            })];
                         case 11:
                             topicsInfo = _b.sent();
-                            console.log("[".concat(date.toLocaleString(), "][describe-topics]"), JSON.stringify(topicsInfo, null, 4));
+                            log("[describe-topics]", JSON.stringify(topicsInfo, null, 4));
                             return [3 /*break*/, 13];
                         case 12:
                             console.log(event);
@@ -188,25 +171,8 @@ var services = {
                 },
             });
         });
-        commander.exitOverride();
-        commander.outputHelp();
-        var onInput = function (buffer) {
-            var input = buffer.toString().replace(/\n/g, '');
-            if (!input)
-                return;
-            var argv = __spreadArray(['', ''], input.split(' '), true);
-            try {
-                commander.parse(argv);
-            }
-            catch (e) {
-                if (e.exitCode === 0)
-                    return;
-            }
-        };
-        process.stdin.on('data', onInput);
-        return function () {
-            process.stdin.off('data', onInput);
-        };
+        var cleanup = (0, cli_1.createCli)(commander, 'admin').cleanup;
+        return cleanup;
     }; },
 };
 exports.default = services;

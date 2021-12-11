@@ -1,13 +1,18 @@
 {
   "name": "@fe2bon4/kafka-cli",
   "version": "1.0.0",
-  "description": "",
+  "description": "An Apache Kafka command-line-interface built with commander,kafkajs and xstate.",
   "main": "bin/index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "prepare": "tsc",
     "build": "tsc"
   },
-  "keywords": [],
+  "keywords": [
+    "kafka",
+    "cli",
+    "apache"
+  ],
   "author": {
     "email": "fe2bon4@gmail.com",
     "name": "Bon Lazaga"

@@ -2,16 +2,19 @@ import { ServiceConfig, AnyEventObject } from 'xstate';
 import { IContext } from '../types';
 import { Kafka } from 'kafkajs';
 import { Command } from 'commander';
+import { createCli } from '../../../utils/cli';
+import { createLogger } from '../../../utils/kafkajs';
 
 type ServiceConfigMap = Record<string, ServiceConfig<IContext, AnyEventObject>>;
 
 const services: ServiceConfigMap = {
   kafkaProducer:
-    ({ params }) =>
+    ({ params, log }) =>
     (send, onEvent) => {
       const kafka = new Kafka({
         clientId: params.id,
         brokers: params.brokers.split(','),
+        logCreator: createLogger(log!),
       });
 
       const producer = kafka.producer({
@@ -49,61 +52,58 @@ const services: ServiceConfigMap = {
         }
       });
     },
-  standardInput: () => (send) => {
-    const commander = new Command();
+  standardInput:
+    ({ log, params }) =>
+    (send, onEvent) => {
+      const commander = new Command();
 
-    commander
-      .command('send')
-      .description('Send Text to Topic')
-      .argument('[messages...]')
-      .action((messages) => {
-        if (!messages.length) return;
-        send({
-          type: 'SEND',
-          payload: {
-            message: messages.join(' '),
-          },
+      commander
+        .command('send')
+        .description('Send Text to Topic')
+        .argument('[messages...]')
+        .action((messages) => {
+          if (!messages.length) return;
+          send({
+            type: 'SEND',
+            payload: {
+              message: messages.join(' '),
+            },
+          });
+          pause();
         });
-      });
 
-    commander
-      .command('change-topic')
-      .description('Change the current topic')
-      .argument('[topic]')
-      .action((topic) => {
-        if (!topic) {
-          return console.error(`change-topic [topic], topic is required`);
+      commander
+        .command('change-topic')
+        .description('Change the current topic')
+        .argument('[topic]')
+        .action((topic) => {
+          if (!topic) {
+            return log!(`change-topic [topic], topic is required`);
+          }
+          send({
+            type: 'CHANGE_TOPIC',
+            payload: {
+              topic,
+            },
+          });
+        });
+
+      const { cleanup, pause, resume } = createCli(commander, 'producer');
+
+      log!(`Current Topic:`, params.topic);
+
+      onEvent((e) => {
+        switch (e.type) {
+          case 'SENT':
+            resume();
+            break;
+          default:
+            log!(e);
+            break;
         }
-        send({
-          type: 'CHANGE_TOPIC',
-          payload: {
-            topic,
-          },
-        });
       });
-
-    commander.exitOverride();
-    commander.outputHelp();
-
-    const onInput = (buffer: Buffer) => {
-      const input = buffer.toString().replace(/\n/g, '');
-
-      if (!input) return;
-
-      const argv = ['', '', ...input.split(' ')];
-
-      try {
-        commander.parse(argv);
-      } catch (e: any) {
-        if (e.exitCode === 0) return;
-      }
-    };
-
-    process.stdin.on('data', onInput);
-    return () => {
-      process.stdin.off('data', onInput);
-    };
-  },
+      return cleanup;
+    },
 };
 
 export default services;

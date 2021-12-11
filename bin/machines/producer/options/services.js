@@ -10,25 +10,19 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var kafkajs_1 = require("kafkajs");
 var commander_1 = require("commander");
+var cli_1 = require("../../../utils/cli");
+var kafkajs_2 = require("../../../utils/kafkajs");
 var services = {
     kafkaProducer: function (_a) {
-        var params = _a.params;
+        var params = _a.params, log = _a.log;
         return function (send, onEvent) {
             var kafka = new kafkajs_1.Kafka({
                 clientId: params.id,
                 brokers: params.brokers.split(','),
+                logCreator: (0, kafkajs_2.createLogger)(log),
             });
             var producer = kafka.producer({
                 allowAutoTopicCreation: true,
@@ -62,56 +56,54 @@ var services = {
             });
         };
     },
-    standardInput: function () { return function (send) {
-        var commander = new commander_1.Command();
-        commander
-            .command('send')
-            .description('Send Text to Topic')
-            .argument('[messages...]')
-            .action(function (messages) {
-            if (!messages.length)
-                return;
-            send({
-                type: 'SEND',
-                payload: {
-                    message: messages.join(' '),
-                },
-            });
-        });
-        commander
-            .command('change-topic')
-            .description('Change the current topic')
-            .argument('[topic]')
-            .action(function (topic) {
-            if (!topic) {
-                return console.error("change-topic [topic], topic is required");
-            }
-            send({
-                type: 'CHANGE_TOPIC',
-                payload: {
-                    topic: topic,
-                },
-            });
-        });
-        commander.exitOverride();
-        commander.outputHelp();
-        var onInput = function (buffer) {
-            var input = buffer.toString().replace(/\n/g, '');
-            if (!input)
-                return;
-            var argv = __spreadArray(['', ''], input.split(' '), true);
-            try {
-                commander.parse(argv);
-            }
-            catch (e) {
-                if (e.exitCode === 0)
+    standardInput: function (_a) {
+        var log = _a.log, params = _a.params;
+        return function (send, onEvent) {
+            var commander = new commander_1.Command();
+            commander
+                .command('send')
+                .description('Send Text to Topic')
+                .argument('[messages...]')
+                .action(function (messages) {
+                if (!messages.length)
                     return;
-            }
+                send({
+                    type: 'SEND',
+                    payload: {
+                        message: messages.join(' '),
+                    },
+                });
+                pause();
+            });
+            commander
+                .command('change-topic')
+                .description('Change the current topic')
+                .argument('[topic]')
+                .action(function (topic) {
+                if (!topic) {
+                    return log("change-topic [topic], topic is required");
+                }
+                send({
+                    type: 'CHANGE_TOPIC',
+                    payload: {
+                        topic: topic,
+                    },
+                });
+            });
+            var _a = (0, cli_1.createCli)(commander, 'producer'), cleanup = _a.cleanup, pause = _a.pause, resume = _a.resume;
+            log("Current Topic:", params.topic);
+            onEvent(function (e) {
+                switch (e.type) {
+                    case 'SENT':
+                        resume();
+                        break;
+                    default:
+                        log(e);
+                        break;
+                }
+            });
+            return cleanup;
         };
-        process.stdin.on('data', onInput);
-        return function () {
-            process.stdin.off('data', onInput);
-        };
-    }; },
+    },
 };
 exports.default = services;

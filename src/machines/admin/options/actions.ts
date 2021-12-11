@@ -2,8 +2,9 @@ import { ActionFunctionMap, AnyEventObject, assign, send } from 'xstate';
 import { IContext } from '../types';
 
 const actions: ActionFunctionMap<IContext, AnyEventObject> = {
-  logReady: () => {
-    console.log(`Kafka Client is ready.`);
+  logReady: ({ log }) => {
+    if (!log) return;
+    log(`Kafka Client is ready.`);
   },
   sendCommandToClient: send((_, e) => e, {
     to: 'kafka-client',
