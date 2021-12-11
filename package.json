@@ -1,5 +1,5 @@
 {
-  "name": "kafka-cli",
+  "name": "@fe2bon4/kafka-cli",
   "version": "1.0.0",
   "description": "",
   "main": "bin/index.js",
@@ -8,7 +8,10 @@
     "build": "tsc"
   },
   "keywords": [],
-  "author": "Bon Lazaga",
+  "author": {
+    "email": "fe2bon4@gmail.com",
+    "name": "Bon Lazaga"
+  },
   "license": "ISC",
   "devDependencies": {
     "@types/node": "14",
