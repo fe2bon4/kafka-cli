@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var config = {
-    id: 'consumer',
+    id: 'admin',
     initial: 'intializing',
     invoke: {
-        id: 'kafka-consumer',
-        src: 'kafkaConsumer',
+        id: 'kafka-client',
+        src: 'kafkaClient',
     },
     states: {
         intializing: {
@@ -24,14 +24,8 @@ var config = {
                 },
             ],
             on: {
-                SUBSCRIBE: {
-                    actions: ['sendInputToConsumer'],
-                },
-                SEND: {
-                    actions: ['sendInputToConsumer'],
-                },
-                SENT: {
-                    actions: [],
+                '*': {
+                    actions: ['sendCommandToClient'],
                 },
             },
         },

@@ -3,11 +3,11 @@ import { IContext } from './types';
 
 const config: MachineConfig<IContext, AnyStateNodeDefinition, AnyEventObject> =
   {
-    id: 'consumer',
+    id: 'admin',
     initial: 'intializing',
     invoke: {
-      id: 'kafka-consumer',
-      src: 'kafkaConsumer',
+      id: 'kafka-client',
+      src: 'kafkaClient',
     },
     states: {
       intializing: {
@@ -26,14 +26,8 @@ const config: MachineConfig<IContext, AnyStateNodeDefinition, AnyEventObject> =
           },
         ],
         on: {
-          SUBSCRIBE: {
-            actions: ['sendInputToConsumer'],
-          },
-          SEND: {
-            actions: ['sendInputToConsumer'],
-          },
-          SENT: {
-            actions: [],
+          '*': {
+            actions: ['sendCommandToClient'],
           },
         },
       },

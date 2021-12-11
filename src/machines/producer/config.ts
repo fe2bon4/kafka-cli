@@ -4,7 +4,7 @@ import { IContext } from './types';
 const config: MachineConfig<IContext, AnyStateNodeDefinition, AnyEventObject> =
   {
     id: 'producer',
-    initial: 'ready',
+    initial: 'intializing',
     invoke: {
       id: 'kafka-producer',
       src: 'kafkaProducer',

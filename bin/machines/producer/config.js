@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var config = {
     id: 'producer',
-    initial: 'ready',
+    initial: 'intializing',
     invoke: {
         id: 'kafka-producer',
         src: 'kafkaProducer',

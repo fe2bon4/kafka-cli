@@ -1,5 +1,10 @@
 import { IOptions } from '../types';
+import { Interpret } from '../machines/admin';
 
 module.exports = (options: IOptions) => {
-  console.log('here', options);
+  const service = Interpret({
+    params: options,
+  });
+
+  service.start();
 };
