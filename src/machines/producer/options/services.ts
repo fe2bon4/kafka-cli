@@ -83,6 +83,7 @@ const services: ServiceConfigMap = {
       });
 
     commander.exitOverride();
+    commander.outputHelp();
 
     const onInput = (buffer: Buffer) => {
       const input = buffer.toString().replace(/\n/g, '');

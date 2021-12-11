@@ -94,6 +94,7 @@ var services = {
             });
         });
         commander.exitOverride();
+        commander.outputHelp();
         var onInput = function (buffer) {
             var input = buffer.toString().replace(/\n/g, '');
             if (!input)
