@@ -51,19 +51,6 @@ var kafkajs_1 = require("kafkajs");
 var commander_1 = require("commander");
 var cli_1 = require("../../../utils/cli");
 var kafkajs_2 = require("../../../utils/kafkajs");
-var toWinstonLogLevel = function (level) {
-    switch (level) {
-        case kafkajs_1.logLevel.ERROR:
-        case kafkajs_1.logLevel.NOTHING:
-            return 'error';
-        case kafkajs_1.logLevel.WARN:
-            return 'warn';
-        case kafkajs_1.logLevel.INFO:
-            return 'info';
-        case kafkajs_1.logLevel.DEBUG:
-            return 'debug';
-    }
-};
 var services = {
     kafkaConsumer: function (_a) {
         var params = _a.params, log = _a.log;
@@ -142,20 +129,6 @@ var services = {
         return function (send) {
             var commander = new commander_1.Command();
             commander
-                .command('send')
-                .description('Send Input to Consumer Service')
-                .argument('[messages...]')
-                .action(function (messages) {
-                if (!messages.length)
-                    return;
-                send({
-                    type: 'SEND',
-                    payload: {
-                        message: messages.join(' '),
-                    },
-                });
-            });
-            commander
                 .command('start')
                 .description('Start this consumer')
                 .action(function () {
@@ -200,13 +173,13 @@ var services = {
                 .action(function (topic, _a) {
                 var offset = _a.offset, _b = _a.partition, partition = _b === void 0 ? 0 : _b;
                 if (!topic) {
-                    return console.error("subscribe [topic], topic is required");
+                    return log("[error] subscribe [topic], topic is required");
                 }
                 if (isNaN(offset)) {
-                    return console.error("-o|--offset [offset], offset is required");
+                    return log("[error] -o|--offset [offset], offset is required");
                 }
                 if (partition < 0) {
-                    return console.error("-p|--partition [partition], partition cannot be less than 0");
+                    return log("[error] -p|--partition [partition], partition cannot be less than 0");
                 }
                 send({
                     type: 'SEEK',
@@ -217,7 +190,7 @@ var services = {
                     },
                 });
             });
-            var _a = (0, cli_1.createCli)(commander, 'consumer'), cleanup = _a.cleanup, pause = _a.pause, resume = _a.resume, prompt = _a.prompt;
+            var cleanup = (0, cli_1.createCli)(commander, 'consumer').cleanup;
             return cleanup;
         };
     },

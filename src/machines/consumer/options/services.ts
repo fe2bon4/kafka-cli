@@ -95,20 +95,6 @@ const services: ServiceConfigMap = {
       const commander = new Command();
 
       commander
-        .command('send')
-        .description('Send Input to Consumer Service')
-        .argument('[messages...]')
-        .action((messages) => {
-          if (!messages.length) return;
-          send({
-            type: 'SEND',
-            payload: {
-              message: messages.join(' '),
-            },
-          });
-        });
-
-      commander
         .command('start')
         .description('Start this consumer')
         .action(() => {

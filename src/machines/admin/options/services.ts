@@ -1,6 +1,6 @@
 import { ServiceConfig, AnyEventObject } from 'xstate';
 import { IContext } from '../types';
-import { Kafka } from 'kafkajs';
+import { ITopicConfig, ITopicPartitionConfig, Kafka } from 'kafkajs';
 import { Command } from 'commander';
 import { createCli } from '../../../utils/cli';
 import { createLogger } from '../../../utils/kafkajs';
@@ -31,6 +31,59 @@ const services: ServiceConfigMap = {
             case 'LIST_TOPICS': {
               const topics = await admin.listTopics();
               log!(`[list-topics]`, JSON.stringify(topics, null, 4));
+              break;
+            }
+
+            case 'CREATE_TOPICS': {
+              const created = await admin.createTopics({
+                waitForLeaders: false,
+                topics: event.payload.topics,
+              });
+
+              log!(
+                `[created:${created}]`,
+                event.payload.topics.map(({ topic }: ITopicConfig) => topic)
+              );
+              break;
+            }
+            case 'CREATE_PARTITIONS': {
+              const updated = await admin.createPartitions({
+                topicPartitions: [event.payload],
+              });
+
+              log!(
+                `[updated:${updated}][topic:${event.payload.topic}][partitions:${event.payload.count}]`
+              );
+              break;
+            }
+
+            case 'LIST_OFFSETS_TOPIC': {
+              const result = await admin.fetchTopicOffsets(event.payload.topic);
+
+              log!('[list-topic-offsets]', result);
+              break;
+            }
+            case 'DELETE TOPICS': {
+              await admin
+                .deleteTopics({
+                  topics: event.payload.topics,
+                })
+                .then(() => {
+                  log!(
+                    `[deleted:true]`,
+                    event.payload.topics.map(({ topic }: ITopicConfig) => topic)
+                  );
+                })
+                .catch((e) => {
+                  log!(
+                    `[deleted:false]`,
+                    event.payload.topics.map(
+                      ({ topic }: ITopicConfig) => topic
+                    ),
+                    e
+                  );
+                });
+
               break;
             }
             case 'LIST_GROUPS': {
@@ -72,22 +125,67 @@ const services: ServiceConfigMap = {
     const commander = new Command();
 
     commander
-      .command('list-groups')
-      .description('List Consumer Groups in this cluster')
-      .action(() => {
+      .command('create-topics')
+      .description('Create topics on this cluster')
+      .argument('[topics...]', 'Topics to be created')
+      .option(
+        '-p, --partitions [partitions]',
+        'Number of partitions for each created topic',
+        parseInt
+      )
+      .option(
+        '-r, --replicas [replica]',
+        'Number of replicas for each created topic',
+        parseInt
+      )
+      .action((topics: Array<string>, { partitions = 1, replicas = 1 }) => {
+        const topicConfigs: Array<ITopicConfig> = topics.map((topic) => {
+          return {
+            topic,
+            numPartitions: partitions,
+            replicationFactor: replicas,
+          };
+        });
+
         send({
-          type: 'LIST_GROUPS',
-          payload: {},
+          type: 'CREATE_TOPICS',
+          payload: {
+            topics: topicConfigs,
+          },
         });
       });
 
     commander
-      .command('list-topics')
-      .description('List topics on this cluster')
-      .action(() => {
+      .command('create-topic-partitions')
+      .description('Create partitions to a topic on this cluster')
+      .argument('[topic]', 'Topic to be partitioned')
+      .option(
+        '-p, --partitions [partitions]',
+        'Number of partitions for topic',
+        parseInt
+      )
+      .action((topic: string, { partitions = 1 }) => {
+        console.log(topic, partitions);
+        const payload: ITopicPartitionConfig = {
+          count: partitions,
+          topic,
+        };
         send({
-          type: 'LIST_TOPICS',
-          payload: {},
+          type: 'CREATE_PARTITIONS',
+          payload,
+        });
+      });
+
+    commander
+      .command('delete-topics')
+      .description('Delete topics from this cluster')
+      .argument('[topics...]', 'Topics to be deleted')
+      .action((topics: Array<string>) => {
+        send({
+          type: 'DELETE_TOPICS',
+          payload: {
+            topics,
+          },
         });
       });
 
@@ -127,6 +225,38 @@ const services: ServiceConfigMap = {
         });
       });
 
+    commander
+      .command('list-groups')
+      .description('List Consumer Groups in this cluster')
+      .action(() => {
+        send({
+          type: 'LIST_GROUPS',
+          payload: {},
+        });
+      });
+
+    commander
+      .command('list-topics')
+      .description('List topics on this cluster')
+      .action(() => {
+        send({
+          type: 'LIST_TOPICS',
+          payload: {},
+        });
+      });
+
+    commander
+      .command('list-topic-offsets')
+      .description('List Offsets of each partition in topic')
+      .argument('[topic]', 'Topic')
+      .action((topic: string) => {
+        send({
+          type: 'LIST_OFFSETS_TOPIC',
+          payload: {
+            topic,
+          },
+        });
+      });
     const { cleanup } = createCli(commander, 'admin');
     return cleanup;
   },
