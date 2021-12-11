@@ -1,0 +1,28 @@
+{
+  "name": "kafka-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bin/index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Bon Lazaga",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "14",
+    "@types/uuid": "^8.3.3",
+    "ts-node": "^10.4.0",
+    "typescript": "4.5"
+  },
+  "dependencies": {
+    "commander": "^8.3.0",
+    "kafkajs": "^1.15.0",
+    "uuid": "^8.3.2",
+    "xstate": "^4.26.1"
+  },
+  "bin": {
+    "kafka-cli": "bin/index.js"
+  }
+}
