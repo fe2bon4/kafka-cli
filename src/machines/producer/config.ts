@@ -32,6 +32,9 @@ const config: MachineConfig<IContext, AnyStateNodeDefinition, AnyEventObject> =
           SEND: {
             actions: ['sendInputToProducer'],
           },
+          SENT: {
+            actions: [],
+          },
         },
       },
     },
