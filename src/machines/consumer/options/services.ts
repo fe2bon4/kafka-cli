@@ -162,16 +162,16 @@ const services: ServiceConfigMap = {
         )
         .action((topic, { offset, partition = 0 }) => {
           if (!topic) {
-            return console.error(`subscribe [topic], topic is required`);
+            return log!(`[error] subscribe [topic], topic is required`);
           }
 
           if (isNaN(offset)) {
-            return console.error(`-o|--offset [offset], offset is required`);
+            return log!(`[error] -o|--offset [offset], offset is required`);
           }
 
           if (partition < 0) {
-            return console.error(
-              `-p|--partition [partition], partition cannot be less than 0`
+            return log!(
+              `[error] -p|--partition [partition], partition cannot be less than 0`
             );
           }
 
