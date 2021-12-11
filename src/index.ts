@@ -7,7 +7,10 @@ const program = new Command();
 program
   .command('admin')
   .option('-i, --id <id>', 'Kafka Consumer Id')
-  .requiredOption('-b, --brokers <brokers>')
+  .requiredOption(
+    '-b, --brokers <brokers>',
+    'Comma-delimited list of kafka brokers (e.g. kafka-1:9092,kakfa-2:9092)'
+  )
   .description('Kafka Admin Client')
   .action((opts: IOptions) => {
     require(__dirname + '/programs/admin')(opts);
@@ -16,7 +19,10 @@ program
 program
   .command('producer')
   .option('-i, --id <id>', 'Kafka Consumer Id')
-  .requiredOption('-b, --brokers <brokers>')
+  .requiredOption(
+    '-b, --brokers <brokers>',
+    'Comma-delimited list of kafka brokers (e.g. kafka-1:9092,kakfa-2:9092)'
+  )
   .requiredOption('-t, --topic <topic>', 'Kafka topic to produce into.')
   .description('Kafka Producer Client')
   .action((opts: IOptions) => {
@@ -27,7 +33,10 @@ program
   .command('consumer')
   .option('-i, --id <id>', 'Kafka Consumer Id')
   .requiredOption('-g, --group <group>', 'Kafka Consumer Group')
-  .requiredOption('-b, --brokers <brokers>')
+  .requiredOption(
+    '-b, --brokers <brokers>',
+    'Comma-delimited list of kafka brokers (e.g. kafka-1:9092,kakfa-2:9092)'
+  )
   .requiredOption('-t, --topic <topic>', 'Kafka topic to consume from')
   .description('Kafka Consumer Client')
   .action((opts: IOptions) => {
