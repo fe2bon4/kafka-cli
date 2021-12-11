@@ -2,7 +2,8 @@ import { ServiceConfig, AnyEventObject } from 'xstate';
 import { IContext } from '../types';
 import { Kafka } from 'kafkajs';
 import { Command } from 'commander';
-import { prefixLog, createCli } from '../../../utils/cli';
+import { createCli } from '../../../utils/cli';
+import { createLogger } from '../../../utils/kafkajs';
 type ServiceConfigMap = Record<string, ServiceConfig<IContext, AnyEventObject>>;
 
 const services: ServiceConfigMap = {
@@ -12,6 +13,7 @@ const services: ServiceConfigMap = {
       const kafka = new Kafka({
         clientId: params.id,
         brokers: params.brokers.split(','),
+        logCreator: createLogger(log!),
       });
 
       const admin = kafka.admin();

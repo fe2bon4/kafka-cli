@@ -45,7 +45,12 @@ var createCli = function (commander, service_name, tty) {
         .action(function () {
         process.exit(0);
     });
-    commander.exitOverride();
+    commander.exitOverride(function (error) {
+        console.log(error);
+        if (error.exitCode === 0)
+            return;
+        console.error(error.message);
+    });
     commander.outputHelp();
     var queuePrompter = function (args, ttl) {
         if (ttl === void 0) { ttl = 300; }

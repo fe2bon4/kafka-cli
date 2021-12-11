@@ -11,6 +11,7 @@ const config: MachineConfig<IContext, AnyStateNodeDefinition, AnyEventObject> =
     },
     states: {
       intializing: {
+        entry: 'logInitializing',
         on: {
           CONNECTED: {
             target: 'ready',
@@ -26,10 +27,7 @@ const config: MachineConfig<IContext, AnyStateNodeDefinition, AnyEventObject> =
           },
         ],
         on: {
-          SUBSCRIBE: {
-            actions: ['sendInputToConsumer'],
-          },
-          SEND: {
+          '*': {
             actions: ['sendInputToConsumer'],
           },
           SENT: {

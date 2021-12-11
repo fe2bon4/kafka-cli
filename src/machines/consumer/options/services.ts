@@ -1,37 +1,65 @@
 import { ServiceConfig, AnyEventObject } from 'xstate';
 import { IContext } from '../types';
-import { Kafka } from 'kafkajs';
+import { EachMessagePayload, Kafka, logLevel } from 'kafkajs';
 import { Command } from 'commander';
+import { createCli } from '../../../utils/cli';
+import { createLogger } from '../../../utils/kafkajs';
 
 type ServiceConfigMap = Record<string, ServiceConfig<IContext, AnyEventObject>>;
 
+const toWinstonLogLevel = (level: logLevel) => {
+  switch (level) {
+    case logLevel.ERROR:
+    case logLevel.NOTHING:
+      return 'error';
+    case logLevel.WARN:
+      return 'warn';
+    case logLevel.INFO:
+      return 'info';
+    case logLevel.DEBUG:
+      return 'debug';
+  }
+};
+
 const services: ServiceConfigMap = {
   kafkaConsumer:
-    ({ params }) =>
+    ({ params, log }) =>
     (send, onEvent) => {
-      console.log(params);
       const kafka = new Kafka({
         clientId: params.id,
         brokers: params.brokers.split(','),
+        logLevel: logLevel.ERROR,
+        logCreator: createLogger(log!),
       });
 
       const consumer = kafka.consumer({
         groupId: params.group,
       });
 
-      consumer.connect().then(() => {
+      const { GROUP_JOIN, CONNECT } = consumer.events;
+
+      consumer.on(GROUP_JOIN, () => {
         send('CONNECTED');
+      });
 
+      consumer.on(CONNECT, () => {});
+
+      const onEachMessage = async ({
+        topic,
+        message,
+        partition,
+      }: EachMessagePayload) => {
+        log!(
+          'Got Message',
+          `\n[topic:${topic}][partition:${partition}]`,
+          message.value?.toString()
+        );
+      };
+
+      consumer.connect().then(() => {
         consumer.subscribe({ topic: params.topic });
-
         consumer.run({
-          eachMessage: async ({ topic, message }) => {
-            const date = new Date();
-            console.log(
-              `[${date.toLocaleString()}][topic:${topic}]`,
-              message.value?.toString()
-            );
-          },
+          eachMessage: onEachMessage,
         });
       });
 
@@ -42,69 +70,140 @@ const services: ServiceConfigMap = {
             break;
           }
           case 'SUBSCRIBE': {
-            consumer.subscribe({ topic: event.payload.topic });
+            consumer.subscribe({ ...event.payload });
+            break;
+          }
+          case 'SEEK': {
+            consumer.seek({
+              ...event.payload,
+            });
+            break;
+          }
+          case 'START': {
+            consumer
+              .run({
+                eachMessage: onEachMessage,
+              })
+              .then(() => log!('Consumer is now running'));
+            break;
+          }
+          case 'STOP': {
+            consumer.stop().then(() => log!(`Consumer has stopped`));
+            break;
+          }
+          case 'CONNECTED': {
+            log!('Consumer has reconnected');
             break;
           }
           default:
+            log!('@Consumer', event);
             break;
         }
       });
     },
-  standardInput: () => (send) => {
-    const commander = new Command();
+  standardInput:
+    ({ log }) =>
+    (send) => {
+      const commander = new Command();
 
-    commander
-      .command('send')
-      .description('Send Input to Consumer Service')
-      .argument('[messages...]')
-      .action((messages) => {
-        if (!messages.length) return;
-        send({
-          type: 'SEND',
-          payload: {
-            message: messages.join(' '),
-          },
+      commander
+        .command('send')
+        .description('Send Input to Consumer Service')
+        .argument('[messages...]')
+        .action((messages) => {
+          if (!messages.length) return;
+          send({
+            type: 'SEND',
+            payload: {
+              message: messages.join(' '),
+            },
+          });
         });
-      });
 
-    commander
-      .command('subscribe')
-      .description('subscribe to topic')
-      .argument('[topic]')
-      .action((topic) => {
-        if (!topic) {
-          return console.error(`subscribe [topic], topic is required`);
-        }
-        send({
-          type: 'SUBSCRIBE',
-          payload: {
-            topic,
-          },
+      commander
+        .command('start')
+        .description('Start this consumer')
+        .action(() => {
+          send({
+            type: 'START',
+            payload: {},
+          });
         });
-      });
 
-    commander.exitOverride();
-    commander.outputHelp();
+      commander
+        .command('stop')
+        .description('Stop this consumer')
+        .action(() => {
+          send({
+            type: 'STOP',
+            payload: {},
+          });
+        });
 
-    const onInput = (buffer: Buffer) => {
-      const input = buffer.toString().replace(/\n/g, '');
+      commander
+        .command('subscribe')
+        .description('Subscribe to topic')
+        .argument('[topic]')
+        .option('-b, --beginning', 'Subscribe from beginning', false)
+        .action((topic, { beginning }) => {
+          if (!topic) {
+            return log!(`Subscribe [topic], topic is required`);
+          }
+          send({
+            type: 'SUBSCRIBE',
+            payload: {
+              topic,
+              fromBeginning: beginning,
+            },
+          });
+        });
 
-      if (!input) return;
+      commander
+        .command('seek')
+        .description('Seek topic offset')
+        .argument('[topic]')
+        .option(
+          '-o, --offset [offset]',
+          'Index to set the seek offset',
+          parseInt
+        )
+        .option(
+          '-p, --partition [partition]',
+          'Partition of the topic',
+          parseInt
+        )
+        .action((topic, { offset, partition = 0 }) => {
+          if (!topic) {
+            return console.error(`subscribe [topic], topic is required`);
+          }
 
-      const argv = ['', '', ...input.split(' ')];
+          if (isNaN(offset)) {
+            return console.error(`-o|--offset [offset], offset is required`);
+          }
 
-      try {
-        commander.parse(argv);
-      } catch (e: any) {
-        if (e.exitCode === 0) return;
-      }
-    };
+          if (partition < 0) {
+            return console.error(
+              `-p|--partition [partition], partition cannot be less than 0`
+            );
+          }
 
-    process.stdin.on('data', onInput);
-    return () => {
-      process.stdin.off('data', onInput);
-    };
-  },
+          send({
+            type: 'SEEK',
+            payload: {
+              topic,
+              offset,
+              partition,
+            },
+          });
+        });
+
+      const { cleanup, pause, resume, prompt } = createCli(
+        commander,
+        'consumer'
+      );
+
+      return cleanup;
+    },
 };
 
 export default services;

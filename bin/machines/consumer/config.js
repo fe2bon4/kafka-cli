@@ -9,6 +9,7 @@ var config = {
     },
     states: {
         intializing: {
+            entry: 'logInitializing',
             on: {
                 CONNECTED: {
                     target: 'ready',
@@ -24,10 +25,7 @@ var config = {
                 },
             ],
             on: {
-                SUBSCRIBE: {
-                    actions: ['sendInputToConsumer'],
-                },
-                SEND: {
+                '*': {
                     actions: ['sendInputToConsumer'],
                 },
                 SENT: {

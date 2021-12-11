@@ -14,13 +14,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var kafkajs_1 = require("kafkajs");
 var commander_1 = require("commander");
 var cli_1 = require("../../../utils/cli");
+var kafkajs_2 = require("../../../utils/kafkajs");
 var services = {
     kafkaProducer: function (_a) {
-        var params = _a.params;
+        var params = _a.params, log = _a.log;
         return function (send, onEvent) {
             var kafka = new kafkajs_1.Kafka({
                 clientId: params.id,
                 brokers: params.brokers.split(','),
+                logCreator: (0, kafkajs_2.createLogger)(log),
             });
             var producer = kafka.producer({
                 allowAutoTopicCreation: true,

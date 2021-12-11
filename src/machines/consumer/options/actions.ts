@@ -2,8 +2,14 @@ import { ActionFunctionMap, AnyEventObject, assign, send } from 'xstate';
 import { IContext } from '../types';
 
 const actions: ActionFunctionMap<IContext, AnyEventObject> = {
-  logReady: () => {
-    console.log(`Kafka Consumer is ready.`);
+  logInitializing: ({ log, params }) => {
+    if (!log)
+      console.log(`Kafka Consumer ${params.id} is now joining ${params.group}`);
+    log!(`Kafka Consumer ${params.id} is now joining ${params.group}`);
+  },
+  logReady: ({ log }) => {
+    if (!log) console.log(`Kafka Consumer is ready.`);
+    log!(`Kafka Consumer is ready.`);
   },
   sendInputToConsumer: send(
     ({ params }, { payload, ...rest }) => ({

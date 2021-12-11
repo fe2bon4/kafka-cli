@@ -37,7 +37,13 @@ export const createCli = (
       process.exit(0);
     });
 
-  commander.exitOverride();
+  commander.exitOverride((error) => {
+    console.log(error);
+    if (error.exitCode === 0) return;
+
+    console.error(error.message);
+  });
+
   commander.outputHelp();
 
   const queuePrompter = (args: string, ttl = 300) => {

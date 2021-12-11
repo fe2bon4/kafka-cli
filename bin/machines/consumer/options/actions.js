@@ -24,8 +24,17 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var xstate_1 = require("xstate");
 var actions = {
-    logReady: function () {
-        console.log("Kafka Consumer is ready.");
+    logInitializing: function (_a) {
+        var log = _a.log, params = _a.params;
+        if (!log)
+            console.log("Kafka Consumer ".concat(params.id, " is now joining ").concat(params.group));
+        log("Kafka Consumer ".concat(params.id, " is now joining ").concat(params.group));
+    },
+    logReady: function (_a) {
+        var log = _a.log;
+        if (!log)
+            console.log("Kafka Consumer is ready.");
+        log("Kafka Consumer is ready.");
     },
     sendInputToConsumer: (0, xstate_1.send)(function (_a, _b) {
         var params = _a.params;
