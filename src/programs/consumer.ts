@@ -1,8 +1,5 @@
-import { Command } from 'commander';
-import { IOptions } from '../types';
+import { IConsumerOptions } from '../types';
 
-module.exports = (options: IOptions) => {
-  const program = new Command();
-
+module.exports = (options: IConsumerOptions) => {
   console.log('here', options);
 };

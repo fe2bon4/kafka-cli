@@ -1,4 +1,3 @@
-import { Command } from 'commander';
 import { IProducerOptions } from '../types';
 import { Interpret } from '../machines/producer';
 
