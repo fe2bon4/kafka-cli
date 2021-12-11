@@ -9,5 +9,5 @@ export interface IProducerOptions extends IOptions {
 
 export interface IConsumerOptions extends IOptions {
   topic: string;
-  group_id: string;
+  group: string;
 }

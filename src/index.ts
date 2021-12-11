@@ -26,9 +26,9 @@ program
 program
   .command('consumer')
   .option('-i, --id <id>', 'Kafka Consumer Id')
-  .requiredOption('-g, --group <group_id>', 'Kafka Consumer Group')
+  .requiredOption('-g, --group <group>', 'Kafka Consumer Group')
   .requiredOption('-b, --brokers <brokers>')
-  .requiredOption('-t, --topic <topic>', 'Kafka topic to consume from.')
+  .requiredOption('-t, --topic <topic>', 'Kafka topic to consume from')
   .description('Kafka Consumer Client')
   .action((opts: IOptions) => {
     if (!opts.id) opts.id = v4();
