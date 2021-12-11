@@ -7,20 +7,6 @@ import { createLogger } from '../../../utils/kafkajs';
 
 type ServiceConfigMap = Record<string, ServiceConfig<IContext, AnyEventObject>>;
 
-const toWinstonLogLevel = (level: logLevel) => {
-  switch (level) {
-    case logLevel.ERROR:
-    case logLevel.NOTHING:
-      return 'error';
-    case logLevel.WARN:
-      return 'warn';
-    case logLevel.INFO:
-      return 'info';
-    case logLevel.DEBUG:
-      return 'debug';
-  }
-};
-
 const services: ServiceConfigMap = {
   kafkaConsumer:
     ({ params, log }) =>
