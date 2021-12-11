@@ -30,6 +30,9 @@ var config = {
                 SEND: {
                     actions: ['sendInputToProducer'],
                 },
+                SENT: {
+                    actions: [],
+                },
             },
         },
     },

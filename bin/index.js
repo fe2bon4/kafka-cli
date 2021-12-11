@@ -33,9 +33,4 @@ program
         opts.id = (0, uuid_1.v4)();
     require(__dirname + '/programs/consumer')(opts);
 });
-try {
-    program.parse(process.argv);
-}
-catch (e) {
-    console.log(e);
-}
+program.parse(process.argv);

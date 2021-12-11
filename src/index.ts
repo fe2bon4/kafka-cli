@@ -35,8 +35,4 @@ program
     require(__dirname + '/programs/consumer')(opts);
   });
 
-try {
-  program.parse(process.argv);
-} catch (e) {
-  console.log(e);
-}
+program.parse(process.argv);
