@@ -98,8 +98,7 @@ var services = {
             var input = buffer.toString().replace(/\n/g, '');
             if (!input)
                 return;
-            var args = input.split(' ');
-            var argv = __spreadArray(['', ''], args, true);
+            var argv = __spreadArray(['', ''], input.split(' '), true);
             try {
                 commander.parse(argv);
             }

@@ -89,8 +89,7 @@ const services: ServiceConfigMap = {
 
       if (!input) return;
 
-      const args = input.split(' ');
-      const argv = ['', '', ...args];
+      const argv = ['', '', ...input.split(' ')];
 
       try {
         commander.parse(argv);
