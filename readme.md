@@ -21,7 +21,7 @@ kafka-cli [options] [command]
 
 - Options:
 
-  - **h, --help** display help for command
+  - **h, --help**, display help for command
 
 Commands:
 
@@ -48,8 +48,8 @@ Kafka Producer Client
 
 - Options:
   - **i, --id &lt;id&gt;**, Kafka Consumer Id
-  - **b, --brokers &lt;brokers&gt;** Comma-delimited list of kafka brokers (e.g. kafka-1:9092,kakfa-2:9092)
-  - **t, --topic &lt;topic&gt;** Kafka topic to produce into.
+  - **b, --brokers &lt;brokers&gt;**, Comma-delimited list of kafka brokers (e.g. kafka-1:9092,kakfa-2:9092)
+  - **t, --topic &lt;topic&gt;**, Kafka topic to produce into.
   - **h, --help**, display help for command
 
 ### Consumer
