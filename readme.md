@@ -5,10 +5,7 @@ An Apache Kafka command-line-interface built with commander,kafkajs and xstate.
 ## Installation
 
 ```sh
-git clone https://github.com/fe2bon4/kafka-cli.git;
-cd fe2bon4/kafka-cli.git;
-npm install;
-npm install -g .
+npm install -g @fe2bon4/kafka-cli
 ```
 
 ## Usage
